@@ -1,0 +1,104 @@
+﻿@page "/AddUser"
+@using BlazorTest100.Services
+@using BlazorTest100.Authentication
+@using BlazorTest100.Pages
+@using BlazorTest100.Models
+@using BlazorTest100.ErrorHandling
+@inject IUserServices UserServices
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider authStateProvider
+@inject CurrentUserLoggedIn currentUser
+
+<div class="login-form-container">
+    <div class="Fire-Flame">
+        <div class="fa-solid fa-fire-flame-curved"></div>
+    </div>
+    <div class="login-form-content">
+        <h1>Create Account</h1>
+        <EditForm Model="@userEntity" OnValidSubmit="CreateUser">
+            <div class="mb-3">
+                <div class="input-container">
+                    <InputText style="width:100%" class="input-placeholder" placeholder="First Name" @bind-Value="userEntity.FirstName" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="input-container">
+                    <InputText style="width:100%" class="input-placeholder" placeholder="Last Name" @bind-Value="userEntity.LastName" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="input-container">
+                    <InputText style="width:100%" class="input-placeholder" placeholder="Email" @bind-Value="userEntity.Email" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="input-container">
+                    <InputText style="width:100%" class="input-placeholder" placeholder="Username" @bind-Value="userEntity.Login" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="input-container">
+                    <InputText style="width:100%" class="input-placeholder" placeholder="Password" @bind-Value="userEntity.Password" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="input-container">
+                    <InputText style="width:100%" class="input-placeholder" placeholder="Repeat Password" @bind-Value="userEntity.Password2" />
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary" @onclick="(async () => { await NavigateToLoginPage();})">Create Account</button>
+                <button type="submit" class="btn btn-primary" @onclick="(async () => { await NavigateToLoginPage();})">Login</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+@if (!createUserSucceeded)
+{
+    <p>@error.createUserErrorMsg</p>
+}
+@code {
+    private async Task NavigateToLoginPage() => NavigationManager.NavigateTo("/login");
+
+    private UserEntity? userEntity;
+    private UserProfileEntity? userProfileEntity;
+    private ErrorContainer? error;
+    //private CreateUserErrorContainer? errorHandling;
+    private bool createUserSucceeded = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        userEntity = await currentUser.GetMyObjectAsync();
+        userProfileEntity = await currentUser.GetMyObjectAsyncTwo();
+    }
+    protected void CreateUser()
+    {
+        //var errorHandlingSession = errorHandling = new();
+        ErrorContainer errorHandling = new();
+        var result = UserServices.AddUser(userEntity, errorHandling);
+
+        if (result)
+        {
+            //The user input met the requirements, and no error was catched.
+            createUserSucceeded = true;
+            //Check if the userprofile is null (not created), so user can create it.
+            var test = UserServices.hasUserProfile(userEntity.Id);
+            if (!test)
+            {
+                //Kommer ikke ind, har ikke en UserProfile
+            }
+            else
+            {
+                // Bliver logget ind med UserProfile ID -- Til UserPRofile Page
+            }
+        }
+        else
+        {
+            //The user input did not meet the requirements or the method catched an error.
+            error = errorHandling;
+            createUserSucceeded = false;
+        }
+
+    }
+}
+

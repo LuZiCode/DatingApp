@@ -1,0 +1,197 @@
+﻿@page "/"
+@using BlazorTest100.Services
+@using BlazorTest100.Authentication
+@using BlazorTest100.Pages
+@using BlazorTest100.Models
+@inject IUserServices UserServices
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager NavigationManager
+@inject IJSRuntime js
+@inject CurrentUserLoggedIn currentUser
+
+
+<PageTitle>Home</PageTitle>
+
+@*Using the AuthorizeView Method from the AuthenticationStateProvider Object*@
+<AuthorizeView>
+
+    <Authorized>
+        <div class="swipe-wrapper">
+            <div class="prefence-pick-container">
+                <button class="btn btn-primary open-gender-modal" @onclick="(() => {showModal = true;})"><i class="fa-solid fa-users-gear"></i></button>
+                @if (showModal)
+                {
+                    <div class="modal fade show" id="filterModal" tabindex="-1" role="dialog" aria-labelledby="filterModalLabel" aria-hidden="true" style="display: block;">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="filterModalLabel"><i class="fa-solid fa-venus-mars"></i> Choose Gender Prefences</h5>
+                                    <button type="button" class="close close-gender-pick" data-dismiss="modal" aria-label="Close" @onclick="(() => {showModal = false;})">
+                                        <span aria-hidden="true"><i class="fa-solid fa-xmark"></i></span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div>
+                                        <InputSelect style="background-image: linear-gradient(45deg, #fd267a, #ff6036); color: white; font-weight: 600;" class="form-control choose-gender-form" @bind-Value="userProfileEntity.GenderId">
+                                            <option value="">--Select an option--</option>
+                                            <option value="1">Male</option>
+                                            <option value="2">Female</option>
+                                            <option value="3">Gay</option>
+                                            <option value="4">Lesbian</option>
+                                            <option value="5">Asexual</option>
+                                            <option value="6">TransSexual</option>
+                                            <option value="7">Hemaphrodite</option>
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary confirm-gender" @onclick="@(() => ApplyFilter(userProfileEntity.GenderId))"><i class="fa-regular fa-circle-check"></i> Confirm</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            @foreach (var availUser in availUsersSwipeList.Select((value, index) => new { value, index }))
+            {
+                <div class="swipe-container @($"avail-user_{availUser.value.UserId}")" style="@(currentIndex == availUser.index ? "" : "display: none;")">
+                    <div class="swipe-content">
+                        <div class="swipe-content-picture">
+                            <img src="Images/pf-pic-3.png">
+                        </div>
+                        <div class="profile-card-bio">
+                            <p>@availUser.value.FirstName @availUser.value.LastName <i class="years-old">@availUser.value.Age</i></p>
+                            <i class="km-away"><i style="color: white;" class="fa-solid fa-venus-mars"></i> @availUser.value.GenderName</i>
+                            <br />
+                            <i class="km-away"><i style="color: white;" class="fa-solid fa-ruler"></i> @availUser.value.Height cm</i>
+                            <br />
+                            <i class="km-away"><i style="color: white;" class="fa-solid fa-map-location-dot"></i> @availUser.value.CityId @availUser.value.CityName</i>
+                        </div>
+                        <div class="breaking-point"></div>
+                        <div class="profile-card-bio">
+                            <i class="km-away"><i style="color: white;" class="fa-solid fa-id-card-clip"></i> @availUser.value.AboutMe</i>
+                        </div>
+                    </div>
+                    <div class="swipe-options">
+                        <button @onclick="(e) => Like(availUser.value)" class="like-button"><i class="fa-solid fa-heart"></i> Like</button>
+                        <button @onclick="(e) => Dislike(availUser.value)" class="dislike-button"><i class="fa-solid fa-heart-crack"></i> Dislike</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </Authorized>
+    <NotAuthorized>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    protected List<UserAndProfileEntity> availUsersSwipeList = new();
+    protected UserAndProfileEntity? userAndProfileEntity;
+    private UserEntity? userEntity;
+    private UserProfileEntity? userProfileEntity;
+    private bool showModal = false;
+    private int? genderId_;
+
+    private int currentIndex = 0;
+    //private int? Age;
+    //private void GetAge(DateTime birthDate) => Age = userAndProfileEntity?.GetAge(birthDate);
+
+    //Cascading Parameter
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckIfLoggedInStatus();
+        userEntity = await currentUser.GetMyObjectAsync();
+        userProfileEntity = await currentUser.GetMyObjectAsyncTwo();
+        //Send en null int parameter med ned i userList, da den skal bruge en parameter til at tjekke efter køn
+        //Grunden til den er null er fordi køn preferencer ikke er angivet endnu
+        //Derfor skal du først sende det valgte GenderId ned i metoden når en user vælger det på modallen
+        GetUserList();
+    }
+
+    protected async Task<List<UserAndProfileEntity>> GetUserList()
+    {
+        var res = await UserServices.GetUsersList(genderId_);
+        var filteredList = new List<UserAndProfileEntity>();
+        for (int i = 0; i < res.Count; i++)
+        {
+            if (!UserServices.CheckIfAlreadyLikedOrDisliked(userEntity?.Id, res[i].Id) && (userEntity?.Id != res[i].Id))
+            {
+                filteredList.Add(res[i]);
+            }
+        }
+        //for (var user in res)
+        //{
+        //}
+        availUsersSwipeList = filteredList;
+        return availUsersSwipeList;
+    }
+
+    private async Task CheckIfLoggedInStatus()
+    {
+        var authstate = await authenticationState;
+        if (!authstate.User.Identity.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/login");
+        }
+    }
+
+    private async Task DisplayID()
+    {
+        var authstate = await authenticationState;
+        var message = $"Hello {authstate.User.Identity.Name}";
+        await js.InvokeVoidAsync("alert", message);
+    }
+
+    private async Task Like(UserAndProfileEntity uAndpEntity)
+    {
+        await js.InvokeVoidAsync("alert", $"You liked {uAndpEntity.FirstName} {uAndpEntity.LastName}");
+
+        LikeEntity likeEntity = new();
+        likeEntity.LikerId = userProfileEntity?.UsersId;
+        likeEntity.LikeeId = uAndpEntity.UserId;
+        likeEntity.Status = 1;
+
+        UserServices.LikeUser(likeEntity);
+
+        if (UserServices.CheckIfUserLikedObjectToo(likeEntity))
+        {
+            await js.InvokeVoidAsync("alert", $"You both liked eachother!");
+            UserServices.AddMatch(likeEntity.LikerId, likeEntity.LikeeId);
+        }
+        currentIndex++;
+        if (currentIndex >= availUsersSwipeList.Count)
+        {
+            //If theres no my on the list set the index back to zero, and adds some html code, that shows theres no more people to match at the moment.
+            currentIndex = 0;
+        }
+    }
+    private async Task Dislike(UserAndProfileEntity uAndpEntity)
+    {
+        await js.InvokeVoidAsync("alert", $"You disliked user {uAndpEntity.FirstName} {uAndpEntity.LastName}");
+        LikeEntity likeEntity = new();
+        likeEntity.LikerId = userProfileEntity?.UsersId;
+        likeEntity.LikeeId = uAndpEntity.UserId;
+        likeEntity.Status = 2;
+
+        UserServices.LikeUser(likeEntity);
+        currentIndex++;
+        if (currentIndex >= availUsersSwipeList.Count)
+        {
+            //If theres no my on the list set the index back to zero, and adds some html code, that shows theres no more people to match at the moment.
+            currentIndex = 0;
+        }
+
+    }
+
+    private void ApplyFilter(int? genderId)
+    {
+        genderId_ = genderId;
+        GetUserList();
+
+        showModal = !showModal;
+    }
+}

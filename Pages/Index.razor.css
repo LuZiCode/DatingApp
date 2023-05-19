@@ -1,0 +1,186 @@
+.wrapper {
+    display: flex;
+    height: 100vh;
+    background: none;
+}
+
+.swipe-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #111418;
+}
+
+.swipe-container {
+    height: 90vh;
+    width: 40rem;
+    background: black;
+    border-radius: 15px 15px 0px 0px;
+    position: relative;
+    overflow: hidden;
+}
+
+.swipe-content {
+    height: calc(90vh - 7rem);
+    overflow-y: scroll;
+    border-radius: 15px 15px 0px 0px;
+}
+
+    .swipe-content img {
+        width: 100%;
+        border-radius: 15px 15px 0px 0px;
+    }
+
+.profile-card-bio {
+    padding: 20px;
+}
+
+    .profile-card-bio hr {
+        opacity: 1;
+        color: #ddd;
+        width: 100%;
+    }
+
+    .profile-card-bio p {
+        font-weight: 600;
+        font-size: 3rem;
+        color: white;
+    }
+
+.years-old {
+    font-style: normal;
+    font-size: 2rem;
+    padding-left: 10px;
+}
+
+.km-away {
+    font-size: 1.5rem;
+    font-style: normal;
+}
+
+.breaking-point {
+    border-bottom: 1px solid #ffffff24;
+    width: 100%;
+}
+
+.profile-card-options {
+    width: 100%;
+    height: 8rem;
+    display: flex;
+}
+
+
+.profile-card-bio {
+    color: #ffffff69;
+    opacity: 1;
+}
+.swipe-options {
+    width: 100%;
+    display: flex;
+    z-index: 999;
+    height: 7rem;
+}
+
+.like-button, .dislike-button{
+    width: 50%;
+}
+
+.like-button {
+    border-radius: 0px 0px 0px 15px;
+}
+
+.dislike-button {
+    border-radius: 0px 0px 15px 0px;
+}
+
+.swipe-options button {
+    width: 50%;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ddd;
+    background: #21262e;
+    border: 1px solid #ffffff24;
+}
+
+    .swipe-options button:hover {
+        background-image: linear-gradient(45deg, #fd267a, #ff6036);
+    }
+
+.open-gender-modal {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 3.5rem;
+    font-size: 2rem;
+    border-radius: 50%;
+    transition: all .2s ease-in-out;
+    margin-right: 18rem;
+    background-color: #fe4b4f;
+    border: 1px solid white;
+}
+
+.open-gender-modal i{
+}
+
+.open-gender-modal:hover{
+    transform: scale(1.1)
+}
+
+.modal {
+    background: #00000090;
+}
+
+.modal-content{
+    background: black;
+    border: 1px solid white;
+}
+
+.modal-header i {
+    color: #fd5068;
+}
+.modal-header h5{
+    color: white;
+    font-weight: 600;
+}
+
+.confirm-gender {
+    background: #fd5068;
+}
+    .confirm-gender i {
+        transition: transform 0.5s ease-in-out;
+        margin-right: 2px
+    }
+
+    .confirm-gender:hover i {
+        transform: scale(1.5) rotate(360deg);
+        color: lightgreen;
+    }
+    .confirm-gender:hover{
+
+    }
+
+.modal-body div{
+    border: none;   
+}
+
+.modal-footer{
+    border: none;
+}
+
+.close-gender-pick{
+    background: none;
+    border: none;
+}
+.close-gender-pick i{
+    transition: all .5s ease-in-out;
+}
+
+.close-gender-pick:hover i{
+    transform: scale(2.2) rotate(180deg)
+}
+    .close-gender-pick i {
+        color: #fd5068
+
+    }

@@ -1,0 +1,101 @@
+﻿@page "/AddProfile"
+@using BlazorTest100.Services
+@using BlazorTest100.Authentication
+@using BlazorTest100.Pages
+@using BlazorTest100.Models
+@using BlazorTest100.ErrorHandling
+@inject IUserServices UserServices
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider authStateProvider
+@inject CurrentUserLoggedIn currentUser
+
+<PageTitle>Create Profile</PageTitle>
+<div class="Profile-form-container">
+    <div class="Fire-Flame">
+        <div class="fa-solid fa-fire-flame-curved"></div>
+    </div>
+    <div class="Profile-form-content">
+        <h1>Create Account</h1>
+        <EditForm Model="@userProfileEntity" OnValidSubmit="CreateProfile">
+            <div class="mb-3">
+                <div class="input-container">
+                    <InputNumber style="width:100%" class="input-placeholder" placeholder="Height" @bind-Value="userProfileEntity.Height" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="input-container">
+                    <InputText style="width:100%" class="input-placeholder" placeholder="Bio" @bind-Value="userProfileEntity.AboutMe" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="input-container">
+                    <InputNumber style="width:100%" class="input-placeholder" placeholder="CityId" @bind-Value="userProfileEntity.CityId" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="input-container">
+                    <InputNumber style="width:100%" class="input-placeholder" placeholder="GenderId" @bind-Value="userProfileEntity.GenderId" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="input-container">
+                    <InputDate style="width:100%" class="input-placeholder" placeholder="Birthdate" @bind-Value="userProfileEntity.BirthDate" />
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary" @onclick="NavigateToIndex">Create Account</button>
+            </div>
+        </EditForm>
+        @if (!createUserSucceeded)
+        {
+            <p>@error.createUserErrorMsg</p>
+        }
+    </div>
+</div>
+
+@code {
+    private void NavigateToIndex() => NavigationManager.NavigateTo("/");
+
+    private UserEntity userEntity;
+    private UserProfileEntity userProfileEntity;
+    private ErrorContainer? error;
+    //private CreateUserErrorContainer? errorHandling;
+    private bool createUserSucceeded = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        userEntity = await currentUser.GetMyObjectAsync();
+        userProfileEntity = await currentUser.GetMyObjectAsyncTwo();
+    }
+
+    protected void CreateProfile()
+    {
+        //var errorHandlingSession = errorHandling = new();
+        ErrorContainer errorHandling = new();
+        var result = UserServices.AddProfile(userProfileEntity, errorHandling, userEntity);
+
+        if (result)
+        {
+            //The user input met the requirements, and no error was catched.
+            createUserSucceeded = true;
+            //Check if the userprofile is null (not created), so user can create it.
+            var test = UserServices.hasUserProfile(userEntity.Id);
+            if (!test)
+            {
+                //Kommer ikke ind, har ikke en UserProfile
+            }
+            else
+            {
+                // Bliver logget ind med UserProfile ID -- Til UserPRofile Page
+            }
+        }
+        else
+        {
+            //The user input did not meet the requirements or the method catched an error.
+            error = errorHandling;
+            createUserSucceeded = false;
+        }
+
+    }
+}
+
